@@ -217,7 +217,7 @@ Commands.kaksinaamaisuus = {
 
 Commands.taso = {
   name: 'taso',
-  help: 'Tämä vaihtaa käyttäjän oikeustasoa. (Tämä täytyy tehdä oikeustalossa)',
+  help: 'Tämä vaihtaa käyttäjän oikeustasoa. Tämä täytyy tehdä oikeustalossa',
   aliases: ['setlevel'],
   noDM: true,
   module: 'default',
@@ -234,7 +234,7 @@ Commands.taso = {
     } else {
       Permissions.checkLevel(msg.guild, msg.author.id).then(function (level) {
         if (suffix[0] > level) {
-          msg.reply("Et voi laittaa oikeustasoa omaa tasoasi isommaksi. Sinut oikeasti pidätetään kohta, jos et lopeta. (LW, hilaa persees tänne!)")
+          msg.reply("Et voi laittaa oikeustasoa omaa tasoasi isommaksi. Sinut oikeasti pidätetään kohta, jos et lopeta. LW, hilaa persees tänne!")
         }
       }).catch(function (error) {
         msg.channel.sendMessage('Helppiä tänne! Jokin leipo kiinni!')
@@ -457,12 +457,12 @@ Commands['join-server'] = {
           msg.channel.sendMessage("Olen jo serverissä **" + server.guild.name + '**')
         } else {
           bot.Invites.accept(server).then(function (server) {
-            Logger.log('debug', 'Liityin palvelimeen ' + server.guild.name + ', koska ' + msg.author.username pyysi. )
+            Logger.log('debug', 'Liityin palvelimeen ' + server.guild.name + ', koska ' + msg.author.username 'pyysi.')
             msg.channel.sendMessage("Liityin palvelimeen **" + server.guild.name + '** koska pyysit. C:')
           })
         }
       }).catch(function (error) {
-        Logger.warn('Kutsu, tarjonnut ' + msg.author.username + ' antoi virheen: ' + error. Pls, leivon kiinni ja kunnolla!)
+        Logger.warn('Kutsu, tarjonnut ' + msg.author.username + ' antoi virheen: ' + error. 'Pls, leivon kiinni ja kunnolla!')
         if (error.status === 403) {
           msg.channel.sendMessage("Minulla on porttikiellot palvelimellasi, ei pakolla.")
         } else {
@@ -472,15 +472,15 @@ Commands['join-server'] = {
     } else if (msg.isPrivate) {
       bot.Invites.resolve(code[3]).then(function (server) {
         if (bot.Guilds.get(server.guild.id)) {
-          msg.channel.sendMessage("Olen jo palvelimella **" + server.guild.name + '**', en voi tulla sinne uudestaan. Paitsi jos ostat velhonhatun minulle :D)
+          msg.channel.sendMessage("Olen jo palvelimella **" + server.guild.name + '**', 'en voi tulla sinne uudestaan. Paitsi jos ostat velhonhatun minulle :D')
         } else {
           bot.Invites.accept(server).then(function (server) {
-            Logger.log('debug', 'Liityin palvelimeen ' + server.guild.name + ', koska ' + msg.author.username pyysi.)
+            Logger.log('debug', 'Liityin palvelimeen ' + server.guild.name + ', koska ' + msg.author.username 'pyysi.')
             msg.channel.sendMessage("Liityin palvelimeen **" + server.guild.name + '** koska pyysit. C:')
           })
         }
       }).catch(function (error) {
-        Logger.warn('Kutsu, tarjonnut ' + msg.author.username + ' antoi virheen: ' + error. Pls, leivon kiinni ja kunnolla!)
+        Logger.warn('Kutsu, tarjonnut ' + msg.author.username + ' antoi virheen: ' + error. 'Pls, leivon kiinni ja kunnolla!')
         if (error.status === 403) {
           msg.channel.sendMessage("Minulla on porttikiellot palvelimellasi, ei pakolla.")
         } else {
@@ -515,9 +515,9 @@ Commands.kick = {
       msg.mentions.map(function (user) {
         var member = msg.guild.members.find((m) => m.id === user.id)
         member.kick().then(() => {
-          msg.channel.sendMessage(Henkilöllä + user.username on nyt kunnon kalossinkuva perseessä!)
+          msg.channel.sendMessage('Henkilöllä + user.username on nyt kunnon kalossinkuva perseessä!')
         }).catch((error) => {
-          msg.channel.sendMessage('Henkilöä ' + user.username ei voitu potkia perseelle, hänellä on joku perseellepotkimisesto tai jotain. (LW hilaa persees tänne!))
+          msg.channel.sendMessage('Henkilöä ' + user.username 'ei voitu potkia perseelle, hänellä on joku perseellepotkimisesto tai jotain. LW hilaa persees tänne!')
           Logger.error(error)
         })
       })
