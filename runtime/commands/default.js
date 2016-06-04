@@ -457,7 +457,7 @@ Commands['join-server'] = {
           msg.channel.sendMessage("Olen jo serverissä **" + server.guild.name + '**')
         } else {
           bot.Invites.accept(server).then(function (server) {
-            Logger.log('debug', 'Liityin palvelimeen ' + server.guild.name + ', koska ' + msg.author.username 'pyysi.')
+            Logger.log('debug', 'Liityin palvelimeen ' + server.guild.name + ', koska ' + msg.author.username + 'pyysi.')
             msg.channel.sendMessage("Liityin palvelimeen **" + server.guild.name + '** koska pyysit. C:')
           })
         }
