@@ -8,3 +8,7 @@ KarpaloCraft-tiimi on yhteistyössä WildBeast-botin kehittäjien kehittänyt Di
 
 - LWTechGaming - Pääasiallinen koodi
 - Evill - Käännökset suomeksi
+
+To do:
+
+Asennuswiki
