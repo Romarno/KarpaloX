@@ -1,21 +1,36 @@
 {
   "private": true,
-  "name": "KarpaloX",
-  "version": "1.0",
-  "description": "Discord-botti",
+  "name": "WildBeast",
+  "version": "3.0.0-beta.4",
+  "description": "A Discord Bot",
   "main": "DougBot.js",
+  "maintainers": [
+    {
+      "name": "Pascal Meijer",
+      "email": "m1rr0rbr34k+github@gmail.com"
+    },
+    {
+      "name": "Curtis Hofstingburg",
+      "email": "chofstingburg@gmail.com",
+      "url": "https://curitzjt.cf/"
+    },
+    {
+      "name": "Anthony Zaza",
+      "email": "tony@lemonmc.com"
+    }
+  ],
   "scripts": {
     "prestart": "npm update",
     "test": "standard & eslint **",
     "start": "node DougBot.js"
   },
   "author": {
-      "name": "Linus Willner",
-      "email": "lwtech@karpalocraft.net",
-      "url": "http://lwtechgaming.weebly.com"
+    "name": "Remco Jongschaap",
+    "email": "Hello@dougley.ovh",
+    "url": "https://dougley.ovh"
   },
   "bugs": {
-    "url": "https://github.com/KarpaloCraft/KarpaloX/issues"
+    "url": "https://github.com/SteamingMutt/WildBeast/issues"
   },
   "repository": {
     "type": "git",
