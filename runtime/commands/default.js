@@ -191,7 +191,7 @@ Commands.tappokytkin = {
   level: 5,
   fn: function (msg, suffix, bot) {
     bot.disconnect()
-    Logger.warn('Killswitchi ainakin toimi.')
+    Logger.warn('Disconnected via killswitch!')
     process.exit(0)
   }
 }
@@ -457,12 +457,12 @@ Commands['join-server'] = {
           msg.channel.sendMessage("Olen jo serverissä **" + server.guild.name + '**')
         } else {
           bot.Invites.accept(server).then(function (server) {
-            Logger.log('debug', 'Liityin palvelimeen ' + server.guild.name + ', koska ' + msg.author.username + 'pyysi.')
+             Logger.log('debug', 'Joined ' + server.guild.name + ', at the request of ' + msg.author.username)
             msg.channel.sendMessage("Liityin palvelimeen **" + server.guild.name + '** koska pyysit. C:')
           })
         }
       }).catch(function (error) {
-        Logger.warn('Kutsu, tarjonnut ' + msg.author.username + ' antoi virheen: ' + error. 'Pls, leivon kiinni ja kunnolla!')
+        ogger.warn('Invite link provided by ' + msg.author.username + ' gave us an error: ' + error)
         if (error.status === 403) {
           msg.channel.sendMessage("Minulla on porttikiellot palvelimellasi, ei pakolla.")
         } else {
@@ -475,12 +475,12 @@ Commands['join-server'] = {
           msg.channel.sendMessage("Olen jo palvelimella **" + server.guild.name + '**', 'en voi tulla sinne uudestaan. Paitsi jos ostat velhonhatun minulle :D')
         } else {
           bot.Invites.accept(server).then(function (server) {
-            Logger.log('debug', 'Liityin palvelimeen ' + server.guild.name + ', koska ' + msg.author.username 'pyysi.')
+            Logger.log('debug', 'Joined ' + server.guild.name + ', at the request of ' + msg.author.username)
             msg.channel.sendMessage("Liityin palvelimeen **" + server.guild.name + '** koska pyysit. C:')
           })
         }
       }).catch(function (error) {
-        Logger.warn('Kutsu, tarjonnut ' + msg.author.username + ' antoi virheen: ' + error. 'Pls, leivon kiinni ja kunnolla!')
+        Logger.warn('Invite link provided by ' + msg.author.username + ' gave us an error: ' + error)
         if (error.status === 403) {
           msg.channel.sendMessage("Minulla on porttikiellot palvelimellasi, ei pakolla.")
         } else {
@@ -515,9 +515,9 @@ Commands.kick = {
       msg.mentions.map(function (user) {
         var member = msg.guild.members.find((m) => m.id === user.id)
         member.kick().then(() => {
-          msg.channel.sendMessage('Henkilöllä + user.username on nyt kunnon kalossinkuva perseessä!')
+          msg.channel.sendMessage('Henkilöllä ' + user.username + 'on nyt kunnon kalossinkuva perseessä!')
         }).catch((error) => {
-          msg.channel.sendMessage('Henkilöä ' + user.username 'ei voitu potkia perseelle, hänellä on joku perseellepotkimisesto tai jotain. LW hilaa persees tänne!')
+          msg.channel.sendMessage('Henkilöä ' + user.username + 'ei voitu potkia perseelle, hänellä on joku perseellepotkimisesto tai jotain. LW hilaa persees tänne!')
           Logger.error(error)
         })
       })
@@ -552,7 +552,7 @@ Commands.ban = {
           member.ban(days).then(() => {
             msg.channel.sendMessage("Ostin henkilölle " + user.username + ' liput banaanisaarille, poistetaan ' + days + ' päivän viestit.')
           }).catch((error) => {
-            msg.channel.sendMessage('Henkilöä ' + user.username " ei onnistuttu lähettämään banaanisaarille.")
+            msg.channel.sendMessage('Henkilöä ' + user.username + " ei onnistuttu lähettämään banaanisaarille.")
             Logger.error(error)
           })
         })
