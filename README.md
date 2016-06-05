@@ -12,3 +12,4 @@ KarpaloCraft-tiimi on yhteistyössä WildBeast-botin kehittäjien kehittänyt Di
 To do:
 
 Asennuswiki
+Muut wikit kuten komennot etc.
