@@ -158,7 +158,7 @@ Commands.info = {
     var msgArray = []
     msgArray.push(`**KarpaloX - Kehitetty KarpaloCraftin sisäiseen käyttöön.**`)
     msgArray.push('Pääasialliset kehittäjät LWTechGaming ja Evill. Dougleyn, Mirrowin ja Perpetucaken lähdekoodin pohjalta.')
-    msgArray.push('Voit saada minusta lisätietoja myös GitHubissa: http://github.com/LWTechGaming/KCBeast')
+    msgArray.push('Voit saada minusta lisätietoja myös GitHubissa: https://github.com/KarpaloCraft/KarpaloX')
     msgArray.push('**Kiitos avusta myös seuraaville henkilöille jotka auttoivat kehityksessä:**')
     msgArray.push('Evill - Käännökset suomeksi')
     msgArray.push('ToWiteus - Komentowiki')
