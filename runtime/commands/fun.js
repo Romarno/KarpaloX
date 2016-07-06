@@ -27,6 +27,38 @@ Commands.gif = {
   }
 }
 
+Commands.rip = {
+  name: 'rip',
+  help: 'Lähettää ripme.xyz-linkin',
+  aliases: ['ripme'],
+  level: 0,
+  timeout: 10,
+  fn: function (msg, suffix, bot) {
+    var qs = require('querystring')
+    var resolve = []
+    var skipped = false
+    if (msg.mentions.length > 0) {
+      for (var m of msg.mentions) {
+        if (m.id !== bot.User.id) {
+          if (resolve[0] === undefined) {
+            resolve[0] = m.username
+          } else {
+            resolve[0] += ' and ' + m.username
+          }
+        } else {
+          skipped = true
+        }
+      }
+    } else if (suffix) {
+      resolve[0] = suffix
+    }
+    if (skipped === true && msg.mentions.length === 1 && suffix) {
+      resolve[0] = suffix
+    }
+    msg.channel.sendMessage('http://ripme.xyz/' + qs.stringify(resolve).substr(2))
+  }
+}
+
 Commands.lehmä = {
   name: 'lehmä',
   help: "Hommaan satunnaisen onnilehmän! En kuitenkaan tiedä, mikä se on.",
@@ -45,7 +77,7 @@ Commands.lehmä = {
 
 Commands.kissa = {
   name: 'kissa',
-  help: "Hommaan satunnaisen kissakuvan sinulle! Kissakuvat ovat parhaita, vai mitä? (Jos katsoo mitä DD ja appelsiinikissa puuhavaavat tämän komennon kanssa koko ajan)",
+  help: "Hommaan satunnaisen kissakuvan sinulle! Kissakuvat ovat parhaita, vai mitä?", //ANTEEKSI MITÄ? Olin laittanut tälläisen pätkän loppuun alkuperäisessä suomennoksessa: "(Jos katsoo mitä DD ja appelsiinikissa puuhavaavat tämän komennon kanssa koko ajan)" :DDD
   module: 'fun',
   timeout: 10,
   level: 0,
@@ -54,7 +86,12 @@ Commands.kissa = {
       .header('X-Mashape-Key', config.api_keys.mashape)
       .header('Accept', 'application/json')
       .end(function (result) {
-        msg.reply(result.body.source)
+        try {
+          msg.reply(result.body.source)
+        } catch (e) {
+          Logger.error(e)
+          msg.reply('Jokin leipoi kiinni, koeta myöhemmin uudestaan.')
+        }
       })
   }
 }
@@ -88,7 +125,7 @@ Commands.stroke = {
         name = ['', name]
       }
     } else {
-      name = ['Andrei', 'Zbikowski']
+      name = ['Andrei', 'Zbikowski'] // I'm not sorry b1nzy <3
     }
     var request = require('request')
     request('http://api.icndb.com/jokes/random?escape=javascript&firstName=' + name[0] + '&lastName=' + name[1], function (error, response, body) {
@@ -108,10 +145,10 @@ Commands.stroke = {
 
 Commands.yomomma = {
   name: 'yomomma',
-  help: "Hommaan satunnaisen yomomma-vitsin sinulle! Kohta kuulet hauskoja asioita **sun mutsistas** C:",
+  help: "Hommaan satunnaisen yomomma-vitsin sinulle! Kohta kuulet hauskoja asioita **sun mutsistas** C:", //Tuo kaunis sun mutsistas-juttu... :d
   timeout: 5,
   level: 0,
-  fn: function (msg, suffix) {
+  fn: function (msg) {
     var request = require('request')
     request('http://api.yomomma.info/', function (error, response, body) {
       if (!error && response.statusCode === 200) {
@@ -122,10 +159,7 @@ Commands.yomomma = {
           return
         }
         var yomomma = JSON.parse(body)
-        if (suffix === '') {
-          msg.channel.sendMessage(yomomma.joke)
-          msg.channel.sendMessage()
-        }
+        msg.channel.sendMessage(yomomma.joke)
       }
     })
   }
@@ -133,7 +167,7 @@ Commands.yomomma = {
 
 Commands.advice = {
   name: 'advice',
-  help: "Annan sinulle elämänohjeita! Pakotan sinut myös noudattamaan näitä... ( ͡° ͜ʖ ͡° )",
+  help: "Annan sinulle elämänohjeita! Pakotan sinut myös noudattamaan näitä... ( ͡° ͜ʖ ͡° )", //HAHA, tuo lennyface Notepad++:ssa :DD
   noDM: true, // Ratelimits Ratelimits Ratelimits Ratelimits
   timeout: 5,
   level: 0,
@@ -144,7 +178,7 @@ Commands.advice = {
         try {
           JSON.parse(body)
         } catch (e) {
-          msg.channel.sendMessage('API palautti epäsovinnaisen vastauksen. LW käsittää kyllä mitä tämä meinaa.')
+          msg.channel.sendMessage('API palautti epäsovinnaisen vastauksen. LW käsittää kyllä mitä tämä meinaa.') //Tämä errorviesti alkaa jo yleistyä pikkuhiljaa.
           return
         }
         var advice = JSON.parse(body)
@@ -156,7 +190,7 @@ Commands.advice = {
 
 Commands.yesno = {
   name: 'yesno',
-  help: 'Palauttaa gif-kuvan joka sanoo kyllä tai ei. Tämä on kauheaa uhkapeliä!',
+  help: 'Palauttaa gif-kuvan joka sanoo kyllä tai ei. Tämä on kauheaa uhkapeliä!', //Evill keksi juuri pokerin uudestaan, great.
   timeout: 5,
   level: 0,
   fn: function (msg, suffix) {
@@ -178,7 +212,7 @@ Commands.yesno = {
 
 Commands.urbandictionary = {
   name: 'urbandictionary',
-  help: "Minä katson, mitä idiootit internetissä ajattelevat sanoista. Se voi olla ihan eri asia, you know!",
+  help: "Minä katson, mitä idiootit internetissä ajattelevat sanoista. Se voi olla ihan eri asia, you know!", //Meinasin laittaa tuohon sanan "kaksimielinen" ja tajusin, että suomennan bottia KClle..
   aliases: ['ud', 'urban'],
   timeout: 10,
   level: 0,
@@ -202,7 +236,7 @@ Commands.urbandictionary = {
           msgArray.push('```')
           msg.channel.sendMessage(msgArray.join('\n'))
         } else {
-          msg.reply(suffix + ":Tämä sana on niin pärinöissä, ettei edes urbaanilla sanakirjalla ole siihen vastausta.")
+          msg.reply(suffix + ": Tämä sana on niin pärinöissä, ettei edes urbaanilla sanakirjalla ole siihen vastausta.") //Pärinöissä :DDDD :pärisee:
         }
       }
     })
@@ -211,7 +245,7 @@ Commands.urbandictionary = {
 
 Commands.fact = {
   name: 'fact',
-  help: "Kerron sinulle kiinnostavia faktoja!",
+  help: "Kerron sinulle kiinnostavia faktoja!", //En usko, että WildBotin faktat ovat kovin kiinnostavia, pakko sanoa.
   timeout: 5,
   level: 0,
   fn: function (msg) {
@@ -239,7 +273,7 @@ Commands.fact = {
 
 Commands.dice = {
   name: 'dice',
-  help: "Heitän noppaa! Next-gen arpapeliä!",
+  help: "Heitän noppaa! Next-gen arpapeliä!", //Nauran näille käännöksilleni :DDDD
   timeout: 5,
   level: 0,
   fn: function (msg, suffix) {
@@ -267,7 +301,7 @@ Commands.dice = {
 
 Commands.fancyinsult = {
   name: 'fancyinsult',
-  help: "Loukkaan ystäviäsi, eivätkä he enää ole ystäviäsi!",
+  help: "Loukkaan ystäviäsi, eivätkä he enää ole ystäviäsi!", //Kek
   aliases: ['insult'],
   timeout: 5,
   level: 0,
@@ -294,7 +328,7 @@ Commands.fancyinsult = {
 
 Commands.cleverbot = {
   name: 'cleverbot',
-  help: 'Puhu cleverbotille! Hänellä on vastaus kaikkeen! (Ei muuten ole)',
+  help: 'Puhu cleverbotille! Hänellä on vastaus kaikkeen! (Ei muuten ole)', //Pakko sanoa, että tuon cleverbotin logiikka on jotain kaunista.
   aliases: ['chat', 'cb', 'talk'],
   level: 0,
   fn: function (msg, suffix) {
@@ -333,20 +367,29 @@ Commands.catfacts = {
 
 Commands.e621 = {
   name: 'e621',
-  help: 'e621, eli *Lopeta internetistä puhuminen niin tosissasi.*', // Mitä vittua Evill?
+  help: 'e621, eli *Lopeta internetistä puhuminen niin tosissasi.**', //Tuossa oli kommentti "Mitä vittua Evill?", ja tuo oli suora suomennos. :DD
   usage: '<tags> multiword tags need to be typed like: wildbeast_is_a_discord_bot',
   level: 0,
   nsfw: true,
   fn: function (msg, suffix) {
     msg.channel.sendTyping()
-    unirest.post('https://e621.net/post/index.json?limit=30&tags=' + suffix) // Fetching 30 posts from E621 with the given tags
-      .end((result) => {
+    unirest.post(`https://e621.net/post/index.json?limit=30&tags=${suffix}`)
+      .headers({
+        'Accept': 'application/json',
+        'User-Agent': 'Unirest Node.js'
+      })
+      // Fetching 30 posts from E621 with the given tags
+      .end(function (result) {
         if (result.body.length < 1) {
           msg.reply('anteeksi, mitään ei löytynyt.') // Correct me if it's wrong.
         } else {
           var count = Math.floor((Math.random() * result.body.length))
           var FurryArray = []
-          FurryArray.push(msg.author.mention + ", etsit `" + suffix + '`') // hehe no privacy if you do the nsfw commands now.
+          if (suffix) {
+            FurryArray.push(`${msg.author.mention}, you've searched for ` + '`' + suffix + '`')
+          } else {
+            FurryArray.push(`${msg.author.mention}, you've searched for ` + '`random`')
+          } // hehe no privacy if you do the nsfw commands now.
           FurryArray.push(result.body[count].file_url)
           msg.channel.sendMessage(FurryArray.join('\n'))
         }
@@ -356,7 +399,7 @@ Commands.e621 = {
 
 Commands.rule34 = {
   name: 'rule34',
-  help: 'Pornoa? Ei tipu!.',
+  help: 'Pornoa? Ei tipu!', //Pavun skini sanoo toisin.. Hetkinen, mitäs vittua nyt taas?
   level: 0,
   nsfw: true,
   fn: function (msg, suffix) {
@@ -365,7 +408,7 @@ Commands.rule34 = {
       .end(function (result) {
         var xml2js = require('xml2js')
         if (result.body.length < 75) {
-          msg.reply('anteeksi, mitään ei löytynyt. Google on hyvä vaihtoehto!') // Correct me if it's wrong.
+          msg.reply('Anteeksi, mitään ei löytynyt. Google on hyvä vaihtoehto!') // Correct me if it's wrong.
         } else {
           xml2js.parseString(result.body, (err, reply) => {
             if (err) {
@@ -391,7 +434,7 @@ Commands.meme = {
   name: 'meme',
   help: "Teen meemin suffixeillasi!",
   timeout: 10,
-  usage: '<memetype> "<Upper line>" "<Bottom line>" **Lainausmerkit ovat tärkeitä!**',
+  usage: 'Lainausmerkit ovat tärkeitä!',
   level: 0,
   fn: function (msg, suffix, bot) {
     var tags = suffix.split('"')
@@ -401,7 +444,7 @@ Commands.meme = {
     var imgflipper = new Imgflipper(config.api_keys.imgflip.username, config.api_keys.imgflip.password)
     imgflipper.generateMeme(meme[memetype], tags[1] ? tags[1] : '', tags[3] ? tags[3] : '', (err, image) => {
       if (err) {
-        msg.reply('Yritä uudestaan.')
+        msg.reply('Please try again.')
       } else {
         var guild = msg.guild
         var user = bot.User
@@ -411,7 +454,6 @@ Commands.meme = {
           msg.reply(image)
         } else {
           msg.reply(image)
-          msg.channel.sendMessage('*Tämä toimii parhaiten kun minulla on oikeudet poistaa viestejä!*')
         }
       }
     })

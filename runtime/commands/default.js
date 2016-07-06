@@ -17,7 +17,7 @@ Commands.pingbot = {
 Commands.sano = {
   name: 'sano',
   help: 'Toista jälkeeni.',
-  aliases: ['say', 'repeat'],
+  aliases: ['echo', 'repeat', 'say'],
   module: 'default',
   timeout: 10,
   level: 0,
@@ -36,8 +36,8 @@ Commands.sano = {
 Commands.poista = {
   name: 'poista',
   help: 'Käytä tätä massapoistaaksesi viestejä, enintään 100.',
-  usage: '<number>',
-  aliases: ['purge', 'prune'],
+  usage: '<määrä>',
+  aliases: ['prune', 'purge'],
   noDM: true,
   timeout: 30,
   level: 0,
@@ -54,10 +54,10 @@ Commands.poista = {
       if (!suffix || isNaN(suffix) || suffix > 100 || suffix < 0) {
         msg.reply('Kokeile uudestaan luvuilla **nollasta sataan**.')
       } else {
-        msg.channel.fetchMessages(suffix).then(result => {
+        msg.channel.fetchMessages(suffix).then((result) => {
           bot.Messages.deleteMessages(result.messages)
-        }).catch(error => {
-          msg.channel.sendMessage('En voinut noutaa viestejä poistettavaksi, koeta myöhemmin uudestaan.')
+        }).catch((error) => {
+          msg.channel.sendMessage('En voinut noutaa viestejä poistettavaksi, koeta myöhemmin uudestaan.') //Siis noutaa viestejä niinkuin koira luita?
           Logger.error(error)
         })
       }
@@ -68,35 +68,74 @@ Commands.poista = {
 Commands.eval = {
   name: 'eval',
   help: 'Ajaa JavaScript-koodia. Älä koske tähän ellet tiedä mitä teet.',
-  level: 9,
+  level: 'master',
+  fn: function (msg, suffix, bot) {
+    if (msg.author.id === bot.User.id) return
+    var util = require('util')
+    try {
+      var returned = eval(suffix)
+      var str = util.inspect(returned, {
+        depth: 1
+      })
+      if (str.length > 1900) {
+        str = str.substr(0, 1897)
+        str = str + '...'
+      }
+      str = str.replace(new RegExp(bot.token, 'gi'), '¯\\\_(ツ)_/¯')
+      msg.channel.sendMessage('```xl\n' + str + '\n```').then((ms) => {
+        if (returned !== undefined && returned !== null && typeof returned.then === 'function') {
+          returned.then(() => {
+            var str = util.inspect(returned, {
+              depth: 1
+            })
+            if (str.length > 1900) {
+              str = str.substr(0, 1897)
+              str = str + '...'
+            }
+            ms.edit('```xl\n' + str + '\n```')
+          }, (e) => {
+            var str = util.inspect(e, {
+              depth: 1
+            })
+            if (str.length > 1900) {
+              str = str.substr(0, 1897)
+              str = str + '...'
+            }
+            ms.edit('```xl\n' + str + '\n```')
+          })
+        }
+      })
+    } catch (e) {
+      msg.channel.sendMessage('```xl\n' + e + '\n```')
+    }
+  }
+}
+
+Commands.plaineval = {
+  name: 'plaineval',
+  help: 'Ajaa JavaScript-koodia. Älä koske tähän ellet tiedä mitä teet.',
+  level: 'master',
   fn: function (msg, suffix, bot) {
     if (msg.author.id === bot.User.id) return
     var evalfin = []
     try {
       evalfin.push('```xl')
-      evalfin.push('- - - - - - - - - - - - - - - - This - - - - - - - - - - - - - - - - ')
-      evalfin.push(suffix)
-      evalfin.push('- - - - - - - - - - - - - - evaluates-to- - - - - - - - - - - - - - -')
       evalfin.push(eval(suffix))
-      evalfin.push('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
       evalfin.push('```')
     } catch (e) {
       evalfin = []
       evalfin.push('```xl')
-      evalfin.push('- - - - - - - - - - - - - - - - -This - - - - - - - - - - - - - - - -')
-      evalfin.push(suffix)
-      evalfin.push('- - - - - - - - - - - - - - - - Failed- - - - - - - - - - - - - - - -')
       evalfin.push(e)
-      evalfin.push('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
       evalfin.push('```')
     }
     msg.channel.sendMessage(evalfin.join('\n'))
   }
 }
 
-Commands.twitch = {
-  name: 'twitch',
+Commands.stream = {
+  name: 'stream',
   help: 'Kertoo, onko joku streamaaja livenä Twitchissä.',
+  aliases: ['twitch'],
   level: 0,
   fn: function (msg, suffix) {
     if (!suffix) {
@@ -125,27 +164,32 @@ Commands.twitch = {
           return
         }
       } else if (!error && response.statusCode === 404) {
-        msg.channel.sendMessage('Kanavaa ei ole olemassa!')
+        msg.channel.sendMessage('Kanavaa ei ole olemassa!') //Sääd stoori, bro
         return
       }
     })
   }
 }
 
-Commands.edit = {
-  name: 'edit',
-  help: 'Muuta asetuksiani, joko hyvään tai huonoon suuntaan...',
+Commands.modify = {
+  name: 'modify',
+  help: 'Muokkaa toimintojani, joko hyvään tai huonoon suuntaan...',
+  aliases: ['customize'],
   noDM: true,
-  level: 0,
+  level: 3,
   fn: function (msg, suffix) {
     var c = require('../databases/controllers/customize.js')
     suffix = suffix.split(' ')
     var x = suffix.slice(1, suffix.length).join(' ')
-    c.adjust(msg, suffix[0], x).then((r) => {
-      msg.channel.sendMessage(':ok_hand: Adjusted ' + suffix[0] + ' to `' + r + '`')
-    }).catch((e) => {
-      msg.channel.sendMessage('Hupsistakeikkaa, ' + e)
-    })
+    if (suffix[0] === 'help') {
+      c.helpHandle(msg)
+    } else {
+      c.adjust(msg, suffix[0], x).then((r) => {
+        msg.channel.sendMessage(':ok_hand: Muokattiin ' + suffix[0] + ' arvoon `' + r + '`')
+      }).catch((e) => {
+        msg.channel.sendMessage('Huppistakeikkaa, ' + e)
+      })
+    }
   }
 }
 
@@ -161,7 +205,6 @@ Commands.info = {
     msgArray.push('Voit saada minusta lisätietoja myös GitHubissa: https://github.com/KarpaloCraft/KarpaloX')
     msgArray.push('**Kiitos avusta myös seuraaville henkilöille jotka auttoivat kehityksessä:**')
     msgArray.push('Evill - Käännökset suomeksi')
-    msgArray.push('ToWiteus - Komentowiki')
     msgArray.push('**Teknisiä tietoja niistä kiinnostuneille:**')
     msgArray.push('Kieli: JavaScript')
     msgArray.push('Library: Discordie 0.5.x')
@@ -179,32 +222,32 @@ Commands.poistu = {
     if (msg.isPrivate) {
       msg.channel.sendMessage('Et voi tehdä minulle tätä yksityisviestillä!')
     } else {
-      msg.channel.sendMessage('Haters gonna hate, minä lähden!')
+      msg.channel.sendMessage('Haters gonna hate, minä lähden!') //Nyt kun miettii tarkemmin, tuo käännös oli aika syöpää.
       msg.guild.leave()
     }
   }
 }
 
-Commands.tappokytkin = {
-  name: 'tappokytkin',
+Commands.killswitch = {
+  name: 'killswitch',
   help: 'Tämä lopettaa kaikki toimintoni kuin seinään. Käytä ainoastaan jos minulla lyö tyhjää.',
-  level: 5,
+  level: 'master',
   fn: function (msg, suffix, bot) {
     bot.disconnect()
-    Logger.warn('Disconnected via killswitch!')
+    Logger.warn('Killswitchi ainakin toimi.')
     process.exit(0)
   }
 }
 
-Commands.kaksinaamaisuus = {
-  name: 'kaksinaamaisuus',
-  help: 'Kerron mainitsemasi käyttäjän monet kasvot.',
+Commands.namechanges = {
+  name: 'namechanges',
+  help: 'Ilmoitan millä nimillä käyttäjä on esiintynyt.',
   noDM: true,
   level: 0,
   fn: function (msg) {
     const n = require('../databases/controllers/users.js')
     if (msg.mentions.length === 0) {
-      msg.channel.sendMessage('Kerro käyttäjä jonka kaksinaamaisuuden haluat tietää.')
+      msg.channel.sendMessage('Määritä käyttäjä, ole hyvä.') //Tämä kaksinaamaisuusjuttu ei ollut niin järkevä, rollbackattu.
       return
     }
     msg.mentions.map((u) => {
@@ -215,9 +258,9 @@ Commands.kaksinaamaisuus = {
   }
 }
 
-Commands.taso = {
-  name: 'taso',
-  help: 'Tämä vaihtaa käyttäjän oikeustasoa. Tämä täytyy tehdä oikeustalossa',
+Commands.setperms = {
+  name: 'setperms',
+  help: 'Tämä vaihtaa käyttäjän oikeustasoa. (Tämä täytyy tehdä oikeustalossa)', //Oikeustalossa? Mitä minä oikein mietin näiden suomentamisessa?
   aliases: ['setlevel'],
   noDM: true,
   module: 'default',
@@ -226,21 +269,21 @@ Commands.taso = {
     var Permissions = require('../databases/controllers/permissions.js')
     suffix = suffix.split(' ')
     if (isNaN(suffix[0])) {
-      msg.reply('Ensimmäinen arametrisi ei ole numero, päärynä!')
+      msg.reply('Ensimmäinen parametrisi ei ole numero, päärynä!')
     } else if (suffix[0] > 3) {
       msg.channel.sendMessage('Taso yli kolmen ei ole sallittua, tai sinut pidätetään.')
-    } else if (msg.mentions.length === 0) {
+    } else if (msg.mentions.length === 0 && msg.mention_roles.length === 0) {
       msg.reply('Mainitse käyttäjä(t), joiden oikeudet haluat muuttaa.')
     } else {
-      Permissions.checkLevel(msg.guild, msg.author.id).then(function (level) {
+      Permissions.checkLevel(msg.guild, msg.author.id, msg.member.roles).then(function (level) {
         if (suffix[0] > level) {
-          msg.reply("Et voi laittaa oikeustasoa omaa tasoasi isommaksi. Sinut oikeasti pidätetään kohta, jos et lopeta. LW, hilaa persees tänne!")
+          msg.reply("Et voi laittaa oikeustasoa omaa tasoasi isommaksi. Sinut oikeasti pidätetään kohta, jos et lopeta. (LW ja Allu, hilatkaa perseenne tänne!)")
         }
       }).catch(function (error) {
-        msg.channel.sendMessage('Helppiä tänne! Jokin leipo kiinni!')
+        msg.channel.sendMessage('Helppiä! Jokin leipo kiinni!')
         Logger.error(error)
       })
-      Permissions.adjustLevel(msg, msg.mentions, parseFloat(suffix[0])).then(function () {
+      Permissions.adjustLevel(msg, msg.mentions, parseFloat(suffix[0]), msg.mention_roles).then(function () {
         msg.channel.sendMessage('Onnittelut! Oikeudet säädettiin kuntoon. Olet loppujen lopuksi kunnon kansalainen...')
       }).catch(function (err) {
         msg.channel.sendMessage('Helppiä! Jokin leipo kiinni!')
@@ -252,7 +295,7 @@ Commands.taso = {
 
 Commands.setnsfw = {
   name: 'setnsfw',
-  help: 'Tällä komennolla voi sallia pornokomennot Discordissa.', //Tällä ei KC:ssa ole väliä, meillä ei pornoa jaella t. Evill
+  help: 'Tällä komennolla voi sallia pornokomennot Discordissa.', //Tällä ei KC:ssa ole väliä, meillä ei pornoa jaella t. Evill (LW kyllä sanoi tuon, mutta joo.)
   noDM: true,
   module: 'default',
   usage: '<on | off>',
@@ -263,9 +306,9 @@ Commands.setnsfw = {
       if (suffix === 'on' || suffix === 'off') {
         Permissions.adjustNSFW(msg, suffix).then((allow) => {
           if (allow) {
-            msg.channel.sendMessage('Pornokomennot ovat nyt ' + msg.channel.mention)
+            msg.channel.sendMessage('Pornokomennot ovat nyt päällä kanavalla ' + msg.channel.mention)
           } else if (!allow) {
-            msg.channel.sendMessage('Pornokomennot ovat nyt ' + msg.channel.mention)
+            msg.channel.sendMessage('Pornokomennot ovat nyt pois päältä kanavalla ' + msg.channel.mention)
           }
         }).catch(() => {
           msg.reply("Ai peppu, homma meni päin ~~mäntyä~~ Koivua.")
@@ -282,6 +325,7 @@ Commands.setnsfw = {
 Commands.terve = {
   name: 'terve',
   help: "Tervehdin sinua!",
+  aliases: ['terse', 'tersehdys'],
   timeout: 20,
   level: 0,
   fn: function (msg, suffix, bot) {
@@ -304,43 +348,42 @@ Commands.status = {
 
 Commands.setstatus = {
   name: 'setstatus',
-  help: 'Tämä vaihtaa tilani. Tällä ei nyt sitten pelleillä, Allu.',
+  help: 'Tämä vaihtaa tilani. Tällä ei nyt sitten pelleillä, Allu.', //Ei Allu tuota kuuntele, usko vaan.
   module: 'default',
-  usage: '<online / away> [playing status]',
-  level: 5,
+  usage: '<online / idle / twitch url> [playing status]',
+  level: 'master',
   fn: function (msg, suffix, bot) {
-    var step = suffix.split(' ')
-    var status = step[0]
-    var playingstep = step.slice(1, step.length)
-    var game = playingstep.join(' ')
-    var playing = {
-      name: game
-    }
-    if (!suffix) {
-      msg.reply('Tarvitset suffiksin, typerys!')
-    } else if (status === 'online' || status === 'idle') {
-      bot.User.setStatus(status, playing)
-      if (game) {
-        msg.channel.sendMessage("Ookoo, olen nyt " + status + ' ja pelaan ' + game)
-      } else {
-        msg.channel.sendMessage("Ookoo, olen nyt " + status + '.')
-      }
+    var first = suffix.split(' ')
+    if (/^http/.test(first[0])) {
+      bot.User.setStatus(null, {
+        type: 1,
+        name: suffix.substring(first[0].length + 1),
+        url: first[0]
+      })
+      msg.channel.sendMessage(`Asetettiin status streamaamiseen viestillä ${suffix.substring(first[0].length + 1)}`)
     } else {
-      msg.reply('Voin vain olla `online` tai `idle`!')
+      if (['online', 'idle'].indexOf(first[0]) > -1) {
+        bot.User.setStatus(first[0], {
+          name: suffix.substring(first[0].length + 1)
+        })
+        msg.channel.sendMessage(`Asetettiin status arvoon ${first[0]} viestillä ${suffix.substring(first[0].length + 1)}`)
+      } else {
+        msg.reply('Voin vain olla `online` tai `idle`!')
+      }
     }
   }
 }
 
 Commands['server-info'] = {
   name: 'server-info',
-  help: "Kerron sinulle tietoa palvelimesta, jossa olet nyt.",
+  help: "Kerron sinulle tietoa palvelimesta, jossa olet nyt.", //Eli KCsta
   aliases: ['serverinfo'],
   noDM: true,
   module: 'default',
   timeout: 20,
   level: 0,
   fn: function (msg) {
-    //Jos ei PM, tietoa palvelimesta
+    //Jos ei PM, tietoa servusta
     if (msg.guild) {
       var roles = msg.guild.roles.map((r) => r.name)
       roles = roles.splice(0, roles.length).join(', ').toString()
@@ -348,15 +391,15 @@ Commands['server-info'] = {
       var msgArray = []
       msgArray.push('Tietoa pyysi ' + msg.author.mention)
       msgArray.push('Palvelimen nimi: **' + msg.guild.name + '** (id: `' + msg.guild.id + '`)')
-      msgArray.push('Omistaja **' + msg.guild.owner.username + '** (id: `' + msg.guild.owner_id + '`)')
+      msgArray.push('Omistaja: **' + msg.guild.owner.username + '** (id: `' + msg.guild.owner_id + '`)')
       msgArray.push('Nykyinen alue: **' + msg.guild.region + '**.')
-      msgArray.push('Tällä palvelimella on  **' + msg.guild.members.length + '** jäsentä')
+      msgArray.push('Tällä palvelimella on **' + msg.guild.members.length + '** jäsentä')
       msgArray.push('Tällä palvelimella on **' + msg.guild.textChannels.length + '** tekstikanavaa.')
-      msgArray.push('Tällä palvelimella on  **' + msg.guild.voiceChannels.length + '** äänikanavaa.')
+      msgArray.push('Tällä palvelimella on **' + msg.guild.voiceChannels.length + '** äänikanavaa.')
       msgArray.push('Tällä palvelimella **' + msg.guild.roles.length + '** roolia rekisteröitynä.')
       msgArray.push("Tämän palvelimen roolit ovat **" + roles + '**')
       if (msg.guild.afk_channel === null) {
-        msgArray.push('AFK-kanavaa ei ole olemassa..')
+        msgArray.push('AFK-kanavaa ei ole olemassa.')
       } else {
         msgArray.push('AFK-kanava: **' + msg.guild.afk_channel.name + '** (id: `' + msg.guild.afk_channel.id + '`)')
       }
@@ -374,17 +417,17 @@ Commands['server-info'] = {
 
 Commands.userinfo = {
   name: 'userinfo',
-  help: "Haen tietoa mainitusta käyttäjästä.",
+  help: "Googlaan mainitun käyttäjän.",
   noDM: true,
   module: 'default',
   level: 0,
   fn: function (msg) {
     var Permissions = require('../databases/controllers/permissions.js')
     if (msg.isPrivate) {
-      msg.channel.sendMessage("Et voi käyttää tätä yksityisviestissä. Feels bad, man.")
-    }
+      msg.channel.sendMessage("Et voi käyttää tätä yksityisviestissä. FeelsBadMan") //Joo, tuosta oli pakko tehdä emote.
+    }                                                                               //Tuo näkyy vain BetterDiscord-käyttäjille, päärynä. Terveisin, LW
     if (msg.mentions.length === 0) {
-      Permissions.checkLevel(msg, msg.author.id).then((level) => {
+      Permissions.checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
         var msgArray = []
         var roles = msg.member.roles.map((r) => r.name)
         roles = roles.splice(0, roles.length).join(', ')
@@ -396,7 +439,7 @@ Commands.userinfo = {
           msgArray.push('Pelaa: ' + msg.author.gameName)
         }
         msgArray.push('Roolit: ' + roles)
-        msgArray.push('Oikeustaso: ' + level)
+        msgArray.push('Nykyinen oikeustaso: ' + level)
         if (msg.author.avatarURL) {
           msgArray.push('Avatar: ' + msg.author.avatarURL)
         }
@@ -409,14 +452,14 @@ Commands.userinfo = {
       return
     }
     msg.mentions.map(function (user) {
-      Permissions.checkLevel(msg, user.id).then(function (level) {
+      Permissions.checkLevel(msg, user.id, user.memberOf(msg.guild).roles).then(function (level) {
         var msgArray = []
         var guild = msg.guild
         var member = guild.members.find((m) => m.id === user.id)
         var roles = member.roles.map((r) => r.name)
         roles = roles.splice(0, roles.length).join(', ')
-        msgArray.push('Tietoa pyysi ' + msg.author.username)
-        msgArray.push('```', 'Pyydetty käyttäjä: ' + user.username + '#' + msg.author.discriminator)
+        msgArray.push('Tietoa pyysi: ' + msg.author.username)
+        msgArray.push('```', 'Pyydetty käyttäjä: ' + user.username + '#' + user.discriminator)
         msgArray.push('ID: ' + user.id)
         msgArray.push('Tila: ' + user.status)
         if (user.gameName) {
@@ -439,7 +482,7 @@ Commands.userinfo = {
 
 Commands['join-server'] = {
   name: 'join-server',
-  help: "Tällä komennolla voit saada OAuth-osoitteeni lisätäksesi sen serveriisii kunhan minulla ole porttikieltoa.",
+  help: "Liityn serveriin, johon käsket minun liittyä, kunhan kutsu on kunnossa ja minulla ei ole banaaneja.",
   aliases: ['join', 'joinserver', 'invite'],
   module: 'default',
   usage: '<bot-mention> <instant-invite>',
@@ -454,15 +497,15 @@ Commands['join-server'] = {
     if (msg.guild && bot.User.isMentioned(msg)) {
       bot.Invites.resolve(code[3]).then(function (server) {
         if (bot.Guilds.get(server.guild.id)) {
-          msg.channel.sendMessage("Olen jo serverissä **" + server.guild.name + '**')
+          msg.channel.sendMessage("Olen jo palvelimella **" + server.guild.name + '**')
         } else {
           bot.Invites.accept(server).then(function (server) {
-             Logger.log('debug', 'Joined ' + server.guild.name + ', at the request of ' + msg.author.username)
-            msg.channel.sendMessage("Liityin palvelimeen **" + server.guild.name + '** koska pyysit. C:')
+            Logger.log('debug', 'Liityin palvelimeen ' + server.guild.name + ', tämän henkilön toimesta: ' + msg.author.username)
+            msg.channel.sendMessage("Liityin palvelimeen **" + server.guild.name + '**  koska pyysit. C:') //Evill pls, piste emojin jälkeen. Rly?
           })
         }
       }).catch(function (error) {
-        ogger.warn('Invite link provided by ' + msg.author.username + ' gave us an error: ' + error)
+        Logger.warn('Kutsu, tarjonnut ' + msg.author.username + ' antoi virheen: ' + error)
         if (error.status === 403) {
           msg.channel.sendMessage("Minulla on porttikiellot palvelimellasi, ei pakolla.")
         } else {
@@ -472,19 +515,19 @@ Commands['join-server'] = {
     } else if (msg.isPrivate) {
       bot.Invites.resolve(code[3]).then(function (server) {
         if (bot.Guilds.get(server.guild.id)) {
-          msg.channel.sendMessage("Olen jo palvelimella **" + server.guild.name + '**', 'en voi tulla sinne uudestaan. Paitsi jos ostat velhonhatun minulle :D')
+          msg.channel.sendMessage("Olen jo palvelimella **" + server.guild.name + '**', "en voi tulla sinne uudestaan. Paitsi jos ostat velhonhatun minulle :D")
         } else {
           bot.Invites.accept(server).then(function (server) {
-            Logger.log('debug', 'Joined ' + server.guild.name + ', at the request of ' + msg.author.username)
+            Logger.log('debug', 'Liityin palvelimeen ' + server.guild.name + ', koska ' + msg.author.username 'pyysi.')
             msg.channel.sendMessage("Liityin palvelimeen **" + server.guild.name + '** koska pyysit. C:')
           })
         }
       }).catch(function (error) {
-        Logger.warn('Invite link provided by ' + msg.author.username + ' gave us an error: ' + error)
+        Logger.warn('Kutsu, tarjonnut ' + msg.author.username + ' antoi virheen: ' + error + "Pls, leivon kiinni ja kunnolla!")
         if (error.status === 403) {
           msg.channel.sendMessage("Minulla on porttikiellot palvelimellasi, ei pakolla.")
         } else {
-          msg.channel.sendMessage("Invite jonka heitit on epäkelpo! Siellä on se instant-invite-nappi. Käytä sitä!")
+          msg.channel.sendMessage("Invite jonka heitit on epäkelpo! Siellä on se instant-invite-nappi, käytä sitä!")
         }
       })
     }
@@ -515,9 +558,9 @@ Commands.kick = {
       msg.mentions.map(function (user) {
         var member = msg.guild.members.find((m) => m.id === user.id)
         member.kick().then(() => {
-          msg.channel.sendMessage('Henkilöllä ' + user.username + 'on nyt kunnon kalossinkuva perseessä!')
+          msg.channel.sendMessage('Henkilöllä' + user.username + 'on nyt kunnon kalossinkuva perseessä!')
         }).catch((error) => {
-          msg.channel.sendMessage('Henkilöä ' + user.username + 'ei voitu potkia perseelle, hänellä on joku perseellepotkimisesto tai jotain. LW hilaa persees tänne!')
+          msg.channel.sendMessage('Henkilöä ' + user.username + 'ei voitu potkia perseelle, hänellä on joku perseellepotkimisesto tai jotain. (LW hilaa persees tänne!)')
           Logger.error(error)
         })
       })
@@ -557,9 +600,33 @@ Commands.ban = {
           })
         })
       } else {
-        msg.reply('Viimeisin argumenttisi pitää olla 0, 1 tai 7! Se ei toimi muuten, ymmärrä jo.')
+        msg.reply('Viimeinen argumenttisi pitää olla 0, 1 tai 7! Se ei toimi muuten, ymmärrä jo.') //Olin suomentanut tuon alunperin "Viimeisin", hyvä soomi taas..
       }
     }
+  }
+}
+
+Commands.afk = {  //Todella aikainen versio, päivityksiä ja parannuksia tulossa piakkoin
+  name: 'afk',
+  help: "Ilmoita että et ole tavoitettavissa hetkeen.",
+  noDM: true,
+  module: 'default',
+  timeout: 10,
+  level: 0,
+  fn: function (msg) {
+    msg.reply(user.username + "on nyt AFK.")
+  }
+}
+
+Commands.back = {
+  name: 'back',
+  help: "Ilmoita paluustasi.",
+  noDM: true,
+  module: 'default',
+  timeout: 10,
+  level: 0,
+  fn: function (msg) {
+    msg.reply(user.username + "on palannut.")
   }
 }
 
