@@ -9,7 +9,7 @@ var db = new Database({
 Commands.tag = {
   name: 'tag',
   help: 'Tageja!',
-  level: 0,
+  level: 1,
   usage: '<create/delete> <tagname> [content] OR <tagname>',
   aliases: ['t'],
   noDM: true,
